@@ -1,0 +1,2 @@
+`` Next.js Routes``
+Routes in next.js are serverless function that they always have to spin up the server first for using them that means we don't have to have a constant server running all the time listening to requests which is great obviously. 
