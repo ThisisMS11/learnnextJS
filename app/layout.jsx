@@ -1,6 +1,8 @@
 import '@styles/globals.css'
 import Nav from '@components/Nav'
-import Provider from '@components/Provider'
+import Provider from '@components/Provider';
+import Script from 'next/script'
+
 export const metadata = {
     title: "Promptopia",
     description: "DisCover and share your favorite prompts",
@@ -21,6 +23,8 @@ const RootLayout = ({ children }) => {
                     </main>
                 </body>
             </Provider>
+
+            <Script src="https://kit.fontawesome.com/c1677446e6.js" />
         </html>
     )
 }
