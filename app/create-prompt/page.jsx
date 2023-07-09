@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 import Form from "@components/Form";
 
@@ -18,18 +19,13 @@ const CreatePrompt = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch("/api/prompt/new", {
-                method: "POST",
-                body: JSON.stringify({
-                    prompt: post.prompt,
-                    userId: session?.user.id,
-                    tag: post.tag,
-                }),
-            });
+            await axios.post("/api/prompt/new", {
+                prompt: post.prompt,
+                userId: session?.user.id,
+                tag: post.tag,
+            }, {});
 
-            if (response.ok) {
-                router.push("/");
-            }
+            router.push("/");
         } catch (error) {
             console.log(error);
         } finally {

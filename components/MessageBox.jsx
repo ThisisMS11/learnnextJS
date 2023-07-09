@@ -88,7 +88,7 @@ const MessageBox = (({ userName, sendTo, sendToName, sendToImage }) => {
             s.disconnect();
         }
 
-    }, [session.user.id, session.user.name])
+    }, [session?.user.id, session?.user.name])
 
     /* listening to events */
     useEffect(() => {
