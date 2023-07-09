@@ -2,8 +2,10 @@
 import { useState, useEffect, memo } from "react";
 import ShowMessages from "./ShowMessages";
 import { useSession } from "next-auth/react";
-const MessageBox = memo(({ userName, sendTo ,sendToName}) => {
+import { io } from "socket.io-client";
+import axios from "axios";
 
+const MessageBox = memo(({ userName, sendTo, sendToName, sendToImage }) => {
 
     const [message, setMessage] = useState("");
     const [issending, setIssending] = useState(false);
@@ -11,73 +13,92 @@ const MessageBox = memo(({ userName, sendTo ,sendToName}) => {
 
     const [messages, setMessages] = useState([]);
 
+
+    /* initialize the socket usestate here */
+    const [socket, setSocket] = useState(null);
+
     /* send the message here */
     const handleSendMessage = async (e) => {
         e.preventDefault();
+        /* emit the send message event here */
 
-        setIssending(true);
+        // setIssending(true);
 
-        try {
-            const response = await fetch(`/api/message/send-message/${sendTo}`, {
-                method: "POST",
-                body: JSON.stringify({
-                    sendBy: session?.user.id,
-                    message,
-                }),
-            });
-
+        if (socket) {
             const newmessage = {
-                _id: crypto.randomUUID(),
-                sendTo:{
-                    _id:sendTo,
-                    userName:sendToName,
-                    email:'dummy@gmail.com',
-                    image : 'https://lh3.googleusercontent.com/ogw/AGvuzYan-fO1IuqHbquR-m9YNdqgr-FVmfpEXrfQiVR6Kw=s32-c-mo'
+                sendTo: {
+                    userId: sendTo,
+                    userName: sendToName,
+                    image: sendToImage
                 },
-                sendBy:{
-                    _id:session.user.id,
-                    userName:session.user.name,
-                    email:session.user.email,
-                    image:session.user.image
+                sendBy: {
+                    userId: session.user.id,
+                    userName: session.user.name,
+                    image: session.user.image
                 },
-                message,
-                createdAt: new Date().toISOString(),
+                message
             }
 
-            if (response.ok) {
-                setMessages((prevMessages) => [...prevMessages, newmessage]);
-                console.log("message sent");
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
+            socket.emit('send-message', newmessage);
+
+
+            /* dynamically changing the local view of messages */
+            newmessage._id = crypto.randomUUID();
+            newmessage.createdAt = new Date().toISOString();
+
+            setMessages((prevMessages) => [...prevMessages, newmessage]);
+
             setMessage("");
-            setIssending(false);
         }
-    };
+    }
+
 
     /* get all the messages here */
     const GetChatMessages = async () => {
 
-
-        const response = await fetch(`/api/message/get-messages/${sendTo}`, {
-            method: "POST",
-            body: JSON.stringify({
-                myself: session?.user.id,
-            })
-        });
-        const data = await response.json();
-
-        console.log(data);
-        setMessages(data);
-
+        const myself = session?.user.id;
+        try {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_CHATSERVER}/api/getmessages/${sendTo}`, { myself }, {});
+            setMessages(response.data.data);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     useEffect(() => {
-        console.log('this is useeffect');
+
         GetChatMessages();
+
+        const END_POINT = process.env.NEXT_PUBLIC_CHATSERVER
+
+        const s = io.connect(END_POINT, {
+            query: { userId: session?.user.id, userName: session?.user.name }
+        });
+
+        s.on('connect', () => {
+            console.log('connected');
+        })
+
+        /* setting the socket here on */
+        setSocket(s);
+
+        return () => {
+            s.disconnect();
+        }
     }, [])
-    
+
+    /* listening to events */
+    useEffect(() => {
+        if (socket) {
+
+            socket.on('receive-message', (newmessage) => {
+                setMessages((prevMessages) => [...prevMessages, newmessage]);
+            })
+        }
+
+    }, [socket])
+
+
     return (
         <div className=" h-fit drop-shadow-2xl p-4 rounded-xl">
             <div className="text-center text-4xl text-gray-400 blue_gradient">ChatBox</div>

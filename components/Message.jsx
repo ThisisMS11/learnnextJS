@@ -5,8 +5,7 @@ const Message = ({ sendBy, message, createdAt }) => {
 
     const { data: session } = useSession();
 
-    const isSentByMe = session?.user.id === sendBy._id;
-
+    const isSentByMe = session?.user.id === sendBy.userId;
 
     const endDisplay = `flex justify-end`;
     const startDisplay = `flex justify-start`;

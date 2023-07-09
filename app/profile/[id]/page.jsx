@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import Profile from "@components/Profile";
 import MessageBox from "@components/MessageBox";
+import axios from "axios";
 
 const UserProfile = ({ params }) => {
     const searchParams = useSearchParams();
@@ -12,15 +13,33 @@ const UserProfile = ({ params }) => {
 
     const [userPosts, setUserPosts] = useState([]);
 
+    const [userinfo, setUserinfo] = useState([]);
+
     useEffect(() => {
         const fetchPosts = async () => {
-            const response = await fetch(`/api/users/${params?.id}/posts`);
-            const data = await response.json();
 
-            setUserPosts(data);
+            try {
+                const response = await axios.get(`/api/users/${params?.id}/posts`);
+                setUserPosts(response.data);
+            } catch (error) {
+                console.log(error);
+            }
         };
 
-        if (params?.id) fetchPosts();
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get(`/api/users/${params?.id}/info`);
+                setUserinfo(response.data);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        if (params?.id) {
+            fetchPosts();
+            fetchUser();
+        }
+
     }, [params.id]);
 
     return (
@@ -31,7 +50,7 @@ const UserProfile = ({ params }) => {
                 data={userPosts}
             />
 
-            <MessageBox sendTo={params?.id} sendToName={userName}/>
+            <MessageBox sendTo={params?.id} sendToName={userName} sendToImage={userinfo.image} />
 
         </div>
     );
