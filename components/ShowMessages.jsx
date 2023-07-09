@@ -8,10 +8,6 @@ const ShowMessages = ({ messages }) => {
 
     if (messages.length === 0) return <div>No Messages</div>;
 
-    useEffect(() => {
-        console.log(messages);
-    }, [])
-
 
     return (
         <ScrollToBottom mode="bottom" className="h-[37rem]">

@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import ShowMessages from "./ShowMessages";
 import { useSession } from "next-auth/react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const MessageBox = memo(({ userName, sendTo, sendToName, sendToImage }) => {
+const MessageBox = (({ userName, sendTo, sendToName, sendToImage }) => {
 
     const [message, setMessage] = useState("");
     const [issending, setIssending] = useState(false);
@@ -53,19 +53,21 @@ const MessageBox = memo(({ userName, sendTo, sendToName, sendToImage }) => {
     }
 
 
-    /* get all the messages here */
-    const GetChatMessages = async () => {
 
-        const myself = session?.user.id;
-        try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_CHATSERVER}/api/getmessages/${sendTo}`, { myself }, {});
-            setMessages(response.data.data);
-        } catch (error) {
-            console.log(error);
-        }
-    }
 
     useEffect(() => {
+
+        /* get all the messages here */
+        const GetChatMessages = async () => {
+
+            const myself = session?.user.id;
+            try {
+                const response = await axios.post(`${process.env.NEXT_PUBLIC_CHATSERVER}/api/getmessages/${sendTo}`, { myself }, {});
+                setMessages(response.data.data);
+            } catch (error) {
+                console.log(error);
+            }
+        }
 
         GetChatMessages();
 
@@ -85,7 +87,8 @@ const MessageBox = memo(({ userName, sendTo, sendToName, sendToImage }) => {
         return () => {
             s.disconnect();
         }
-    }, [])
+
+    }, [session.user.id, session.user.name])
 
     /* listening to events */
     useEffect(() => {
